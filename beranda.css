@@ -242,7 +242,7 @@ a {
     inset: 0;
 
     background:
-        url("asset/bgsultan.jpeg")
+        url("bgsultan.jpeg")
         center / cover no-repeat;
 
     transform:
