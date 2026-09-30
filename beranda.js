@@ -247,7 +247,7 @@ const timelineData = {
             "Awal pemerintahan Sultan Agung menjadi titik penting dalam perkembangan Mataram.",
 
         image:
-            "asset/awal_pemerintahan.jpg"
+            "awal_pemerintahan.jpg"
 
     },
 
@@ -264,7 +264,7 @@ const timelineData = {
             "Pasukan Mataram bergerak menuju Batavia untuk menghadapi VOC.",
 
         image:
-            "asset/serangankebatavia.jpg"
+            "serangankebatavia.jpg"
 
     },
 
@@ -281,7 +281,7 @@ const timelineData = {
             "Serangan kedua dilakukan setahun setelah ekspedisi pertama.",
 
         image:
-            "asset/seranganke2.jpg"
+            "seranganke2.jpg"
 
     },
 
@@ -298,7 +298,7 @@ const timelineData = {
             "Tahun 1645 menandai berakhirnya masa pemerintahan Sultan Agung.",
 
         image:
-            "asset/akhir_pemerintahan.jpg"
+            "akhir_pemerintahan.jpg"
 
     }
 
