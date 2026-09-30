@@ -1,0 +1,1372 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>HISTORY QUEST — Petualangan Sejarah Indonesia</title>
+
+<!-- Tailwind CDN -->
+<script src="https://cdn.tailwindcss.com"></script>
+
+<!-- Confetti.js -->
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+
+<!-- Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body { font-family: 'Poppins', sans-serif; margin: 0; overflow: hidden; }
+  .font-pixel { font-family: 'Press Start 2P', monospace; letter-spacing: 0.5px; }
+
+  /* === BACKGROUND PETA KUNO === */
+  .map-bg {
+    background-color: #0c1220;
+    background-image:
+      radial-gradient(circle at 15% 25%, rgba(251,191,36,.10) 0%, transparent 45%),
+      radial-gradient(circle at 85% 75%, rgba(220,38,38,.10) 0%, transparent 45%),
+      radial-gradient(circle at 50% 50%, rgba(30,41,59,.6) 0%, transparent 70%),
+      linear-gradient(180deg, #0a0f1c 0%, #111827 50%, #0a0f1c 100%);
+  }
+
+  /* Batik overlay */
+  .batik-overlay {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cg fill='none' stroke='%23fbbf24' stroke-width='1'%3E%3Ccircle cx='40' cy='40' r='14'/%3E%3Ccircle cx='0' cy='0' r='14'/%3E%3Ccircle cx='80' cy='0' r='14'/%3E%3Ccircle cx='0' cy='80' r='14'/%3E%3Ccircle cx='80' cy='80' r='14'/%3E%3C/g%3E%3C/svg%3E");
+    background-size: 80px 80px;
+  }
+
+  /* === ANIMASI === */
+  @keyframes shake {
+    0%,100% { transform: translateX(0); }
+    20% { transform: translateX(-12px) rotate(-1deg); }
+    40% { transform: translateX(12px) rotate(1deg); }
+    60% { transform: translateX(-8px); }
+    80% { transform: translateX(8px); }
+  }
+  .shake { animation: shake 0.45s ease-in-out; }
+
+  @keyframes bouncePress {
+    0% { transform: scale(1); }
+    50% { transform: scale(0.9); }
+    100% { transform: scale(1); }
+  }
+  .btn-press:active { animation: bouncePress 0.18s ease-out; }
+
+  @keyframes floatParticle {
+    0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+    10% { opacity: 0.7; }
+    90% { opacity: 0.7; }
+    100% { transform: translateY(-10vh) rotate(360deg); opacity: 0; }
+  }
+  .particle { animation: floatParticle linear infinite; pointer-events: none; }
+
+  @keyframes floatUp {
+    0% { opacity: 1; transform: translate(-50%, 0) scale(1); }
+    100% { opacity: 0; transform: translate(-50%, -120px) scale(1.6); }
+  }
+  .float-up { animation: floatUp 1s ease-out forwards; }
+
+  @keyframes bossEnter {
+    0% { transform: translateY(-120px) scale(0.5); opacity: 0; }
+    60% { transform: translateY(10px) scale(1.05); opacity: 1; }
+    100% { transform: translateY(0) scale(1); opacity: 1; }
+  }
+  .boss-enter { animation: bossEnter 0.7s cubic-bezier(.34,1.56,.64,1); }
+
+  @keyframes bossIdle {
+    0%,100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+  }
+  .boss-idle { animation: bossIdle 2.4s ease-in-out infinite; }
+
+  @keyframes bubbleIn {
+    0% { transform: scale(0.7); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  .bubble-in { animation: bubbleIn 0.35s cubic-bezier(.34,1.56,.64,1) both; }
+
+  @keyframes pulseGlow {
+    0%,100% { box-shadow: 0 0 20px rgba(251,191,36,.4); }
+    50% { box-shadow: 0 0 45px rgba(251,191,36,.9); }
+  }
+  .glow-pulse { animation: pulseGlow 2s ease-in-out infinite; }
+
+  @keyframes levelPop {
+    0% { transform: scale(0.4); opacity: 0; }
+    60% { transform: scale(1.15); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  .level-pop { animation: levelPop 0.6s cubic-bezier(.34,1.56,.64,1) both; }
+
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  .fade-in { animation: fadeIn 0.4s ease-out both; }
+
+  @keyframes slideUp {
+    0% { transform: translateY(40px); opacity: 0; }
+    100% { transform: translateY(0); opacity: 1; }
+  }
+  .slide-up { animation: slideUp 0.5s ease-out both; }
+
+  @keyframes coinFly {
+    0% { transform: translateY(0) scale(1); opacity: 1; }
+    100% { transform: translateY(-100px) scale(1.8); opacity: 0; }
+  }
+  .coin-fly { animation: coinFly 0.9s ease-out forwards; }
+
+  /* === CHAT BUBBLE === */
+  .chat-bubble {
+    position: relative;
+    background: linear-gradient(180deg, #ffffff 0%, #fef9e7 100%);
+    border-radius: 20px;
+    padding: 18px 22px;
+    box-shadow: 0 12px 40px rgba(0,0,0,.5), inset 0 -3px 0 rgba(0,0,0,.06);
+    border: 3px solid #fbbf24;
+  }
+  .chat-bubble::before {
+    content: '';
+    position: absolute;
+    top: -18px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0; height: 0;
+    border-left: 16px solid transparent;
+    border-right: 16px solid transparent;
+    border-bottom: 18px solid #fbbf24;
+  }
+  .chat-bubble::after {
+    content: '';
+    position: absolute;
+    top: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0; height: 0;
+    border-left: 13px solid transparent;
+    border-right: 13px solid transparent;
+    border-bottom: 15px solid #ffffff;
+  }
+
+  /* === TIMER BAR === */
+  .timer-fill {
+    transition: width 0.1s linear, background-color 0.3s ease;
+  }
+
+  /* === BUTTONS === */
+  .btn-benar {
+    background: linear-gradient(180deg, #10b981 0%, #047857 100%);
+    box-shadow: 0 6px 0 #065f46, 0 10px 25px rgba(16,185,129,.4);
+    transition: all 0.1s ease;
+  }
+  .btn-benar:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 0 #065f46, 0 14px 30px rgba(16,185,129,.5); }
+  .btn-benar:active:not(:disabled) { transform: translateY(4px); box-shadow: 0 2px 0 #065f46; }
+  .btn-benar:disabled { opacity: 0.6; cursor: not-allowed; }
+
+  .btn-salah {
+    background: linear-gradient(180deg, #ef4444 0%, #b91c1c 100%);
+    box-shadow: 0 6px 0 #7f1d1d, 0 10px 25px rgba(239,68,68,.4);
+    transition: all 0.1s ease;
+  }
+  .btn-salah:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 0 #7f1d1d, 0 14px 30px rgba(239,68,68,.5); }
+  .btn-salah:active:not(:disabled) { transform: translateY(4px); box-shadow: 0 2px 0 #7f1d1d; }
+  .btn-salah:disabled { opacity: 0.6; cursor: not-allowed; }
+
+  .btn-gold {
+    background: linear-gradient(180deg, #fbbf24 0%, #d97706 100%);
+    box-shadow: 0 5px 0 #92400e, 0 8px 20px rgba(251,191,36,.4);
+    transition: all 0.1s ease;
+  }
+  .btn-gold:hover { transform: translateY(-2px); box-shadow: 0 7px 0 #92400e, 0 12px 25px rgba(251,191,36,.5); }
+  .btn-gold:active { transform: translateY(3px); box-shadow: 0 2px 0 #92400e; }
+
+  /* === AVATAR BUTTON === */
+  .avatar-btn {
+    background: rgba(30,41,59,.7);
+    border: 3px solid #334155;
+    border-radius: 16px;
+    padding: 14px 8px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+  }
+  .avatar-btn:hover {
+    border-color: #fbbf24;
+    transform: translateY(-3px);
+    background: rgba(30,41,59,.9);
+  }
+  .avatar-btn.selected {
+    border-color: #fbbf24;
+    background: linear-gradient(180deg, rgba(251,191,36,.25), rgba(217,119,6,.25));
+    box-shadow: 0 0 25px rgba(251,191,36,.6);
+    transform: translateY(-3px);
+  }
+
+  /* === HEART ANIMATION === */
+  @keyframes heartLost {
+    0% { transform: scale(1); filter: grayscale(0); }
+    50% { transform: scale(1.5); filter: grayscale(1); }
+    100% { transform: scale(1); filter: grayscale(1); opacity: 0.3; }
+  }
+  .heart-lost { animation: heartLost 0.6s ease-out forwards; }
+
+  /* Scrollbar */
+  .scroll-thin::-webkit-scrollbar { width: 8px; }
+  .scroll-thin::-webkit-scrollbar-thumb { background: #fbbf24; border-radius: 99px; }
+  .scroll-thin::-webkit-scrollbar-track { background: rgba(15,23,42,.5); border-radius: 99px; }
+
+  /* hide scroll */
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+
+  /* Star pop */
+  @keyframes starPop {
+    0% { transform: scale(0) rotate(-180deg); opacity: 0; }
+    70% { transform: scale(1.3) rotate(10deg); opacity: 1; }
+    100% { transform: scale(1) rotate(0deg); opacity: 1; }
+  }
+  .star-pop { animation: starPop 0.6s cubic-bezier(.34,1.56,.64,1) both; }
+</style>
+</head>
+
+<body>
+
+<!-- ============================================================ -->
+<!-- SCREEN 1: LOBBY                                              -->
+<!-- ============================================================ -->
+<div id="screen-lobby" class="fixed inset-0 overflow-y-auto map-bg z-10 no-scrollbar">
+
+  <!-- Particles -->
+  <div class="fixed inset-0 pointer-events-none overflow-hidden">
+    <div class="particle absolute text-amber-400/40 text-2xl" style="left:8%; animation-duration:14s; animation-delay:0s;">✦</div>
+    <div class="particle absolute text-red-400/30 text-xl" style="left:22%; animation-duration:18s; animation-delay:3s;">✦</div>
+    <div class="particle absolute text-amber-300/40 text-3xl" style="left:78%; animation-duration:16s; animation-delay:1.5s;">✦</div>
+    <div class="particle absolute text-white/20 text-lg" style="left:60%; animation-duration:20s; animation-delay:5s;">✦</div>
+    <div class="particle absolute text-amber-400/30 text-2xl" style="left:92%; animation-duration:15s; animation-delay:2.5s;">✦</div>
+    <div class="particle absolute text-red-300/25 text-xl" style="left:40%; animation-duration:19s; animation-delay:7s;">✦</div>
+  </div>
+
+  <div class="fixed inset-0 batik-overlay opacity-[0.05] pointer-events-none"></div>
+
+  <!-- Konten -->
+  <div class="relative min-h-full flex items-center justify-center p-4 py-8">
+    <div class="w-full max-w-lg">
+
+      <!-- Judul -->
+      <div class="text-center mb-6 fade-in">
+        <div class="inline-block mb-3 text-5xl animate-bounce">🗺️</div>
+        <h1 class="font-pixel text-xl sm:text-2xl text-amber-400 leading-tight mb-2" style="text-shadow: 0 4px 0 #92400e, 0 0 30px rgba(251,191,36,.6);">
+          HISTORY QUEST
+        </h1>
+        <p class="text-amber-200/70 text-xs sm:text-sm font-semibold tracking-widest uppercase">
+          Petualangan Sejarah Indonesia
+        </p>
+        <div class="mt-4 h-1 w-40 mx-auto flex rounded-full overflow-hidden">
+          <div class="flex-1 bg-red-600"></div>
+          <div class="flex-1 bg-white"></div>
+        </div>
+      </div>
+
+      <!-- Card -->
+      <div class="bg-slate-900/85 backdrop-blur-md border-4 border-amber-500/70 rounded-3xl p-6 sm:p-8 shadow-2xl shadow-amber-900/30 slide-up">
+
+        <!-- Input Nama -->
+        <label class="block text-amber-300 font-bold text-xs uppercase tracking-widest mb-2">
+          🧭 Nama Penjelajah
+        </label>
+        <input id="inputName" type="text" maxlength="16" placeholder="Masukkan namamu..."
+          class="w-full bg-slate-800/80 border-2 border-slate-600 focus:border-amber-400 rounded-xl px-4 py-3 text-white placeholder-slate-500 outline-none transition text-base font-semibold">
+
+        <!-- Pilih Karakter -->
+        <p class="block text-amber-300 font-bold text-xs uppercase tracking-widest mt-6 mb-3">
+          ⚔️ Pilih Karakter
+        </p>
+        <div class="grid grid-cols-3 gap-3">
+          <button type="button" class="avatar-btn" data-avatar="pahlawan">
+            <div class="text-3xl sm:text-4xl mb-1">🦸</div>
+            <p class="text-white text-[11px] sm:text-xs font-bold">Pahlawan</p>
+          </button>
+          <button type="button" class="avatar-btn" data-avatar="pelajar">
+            <div class="text-3xl sm:text-4xl mb-1">🧑‍🎓</div>
+            <p class="text-white text-[11px] sm:text-xs font-bold">Pelajar</p>
+          </button>
+          <button type="button" class="avatar-btn" data-avatar="arkeolog">
+            <div class="text-3xl sm:text-4xl mb-1">🧑‍🔬</div>
+            <p class="text-white text-[11px] sm:text-xs font-bold">Arkeolog</p>
+          </button>
+        </div>
+
+        <!-- Info game -->
+        <div class="mt-6 grid grid-cols-3 gap-2 text-center">
+          <div class="bg-slate-800/60 rounded-xl py-2.5 border border-slate-700">
+            <p class="text-lg">❤️</p>
+            <p class="text-[10px] text-slate-400 font-bold uppercase mt-0.5">3 Nyawa</p>
+          </div>
+          <div class="bg-slate-800/60 rounded-xl py-2.5 border border-slate-700">
+            <p class="text-lg">⏱️</p>
+            <p class="text-[10px] text-slate-400 font-bold uppercase mt-0.5">15 Detik</p>
+          </div>
+          <div class="bg-slate-800/60 rounded-xl py-2.5 border border-slate-700">
+            <p class="text-lg">🪙</p>
+            <p class="text-[10px] text-slate-400 font-bold uppercase mt-0.5">10 Soal</p>
+          </div>
+        </div>
+
+        <!-- Tombol Mulai -->
+        <button onclick="startGame()"
+          class="btn-gold btn-press w-full mt-7 py-4 rounded-2xl text-slate-900 font-pixel text-xs sm:text-sm tracking-wider">
+          ▶ MULAI PETUALANGAN
+        </button>
+
+        <!-- Tombol Leaderboard -->
+        <button onclick="openLeaderboard()"
+          class="w-full mt-3 py-3 rounded-2xl border-2 border-amber-500/60 text-amber-300 font-bold text-sm hover:bg-amber-500/10 transition">
+          🏆 PAPAN PERINGKAT
+        </button>
+
+        <!-- Error msg -->
+        <p id="lobbyError" class="hidden text-red-400 text-xs text-center mt-3 font-semibold"></p>
+      </div>
+      
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- SCREEN 2: GAME                                               -->
+<!-- ============================================================ -->
+<div id="screen-game" class="fixed inset-0 map-bg z-20 hidden flex-col overflow-hidden">
+
+  <div class="fixed inset-0 batik-overlay opacity-[0.04] pointer-events-none"></div>
+
+  <!-- ===== TOP HUD ===== -->
+  <div class="relative z-10 flex items-center justify-between px-3 sm:px-5 py-3 bg-slate-900/80 backdrop-blur-md border-b-4 border-amber-500/40">
+
+    <!-- Level Badge -->
+    <div id="levelBadge" class="flex items-center gap-2 bg-gradient-to-r from-amber-600 to-amber-800 rounded-xl px-3 py-2 shadow-lg">
+      <span class="text-lg" id="levelIcon">🏛️</span>
+      <div class="leading-none hidden sm:block">
+        <p class="text-[9px] text-amber-100 font-bold uppercase tracking-widest" id="levelLabel">Level 1</p>
+        <p class="text-amber-50 text-[11px] font-extrabold" id="levelName">Dunia Kerajaan</p>
+      </div>
+      <p class="text-white font-extrabold text-sm sm:hidden" id="levelMobile">L1</p>
+    </div>
+
+    <!-- Nyawa -->
+    <div class="flex items-center gap-1 bg-slate-800/80 rounded-xl px-3 py-2 border border-slate-700">
+      <span id="heart1" class="text-xl sm:text-2xl transition-all">❤️</span>
+      <span id="heart2" class="text-xl sm:text-2xl transition-all">❤️</span>
+      <span id="heart3" class="text-xl sm:text-2xl transition-all">❤️</span>
+    </div>
+
+    <!-- Coin & Score -->
+    <div class="flex items-center gap-2">
+      <div class="flex items-center gap-1.5 bg-gradient-to-r from-yellow-500 to-amber-600 rounded-xl px-3 py-2 shadow-lg">
+        <span class="text-lg">🪙</span>
+        <span id="coinDisplay" class="text-white font-extrabold text-sm sm:text-base tabular-nums">0</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== STREAK BANNER ===== -->
+  <div id="streakBanner" class="hidden absolute top-24 left-1/2 -translate-x-1/2 z-30 pointer-events-none">
+    <div class="bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 text-white font-pixel text-xs sm:text-sm px-5 py-3 rounded-full shadow-2xl border-2 border-yellow-300 level-pop">
+      STREAK x<span id="streakNum">3</span>! 🔥 BONUS x2
+    </div>
+  </div>
+
+  <!-- ===== ARENA (BOSS + SOAL) ===== -->
+  <div id="arena" class="relative z-10 flex-1 flex flex-col items-center justify-center px-4 py-2 overflow-hidden">
+
+    <!-- Efek suara visual / flash -->
+    <div id="flashEffect" class="absolute inset-0 pointer-events-none opacity-0 transition-opacity duration-200"></div>
+
+    <!-- Boss -->
+    <div id="boss" class="text-6xl sm:text-7xl md:text-8xl boss-enter relative z-10 select-none" style="filter: drop-shadow(0 8px 25px rgba(0,0,0,.6));">
+      🐲
+    </div>
+
+    <!-- Boss name tag -->
+    <div id="bossName" class="mt-2 px-3 py-1 rounded-full bg-red-900/80 border border-red-500/50 text-red-100 text-[10px] font-bold uppercase tracking-widest z-10">
+      Penjaga Candi
+    </div>
+
+    <!-- Chat Bubble -->
+    <div id="bubbleWrap" class="w-full max-w-xl mt-5 relative z-10">
+      <div class="chat-bubble bubble-in">
+        <p id="questionText" class="text-slate-800 font-bold text-sm sm:text-base md:text-lg leading-snug text-center">
+          Memuat soal...
+        </p>
+      </div>
+    </div>
+
+    <!-- Float effect layer untuk "+100" / "-50" -->
+    <div id="floatLayer" class="absolute inset-0 pointer-events-none"></div>
+  </div>
+
+  <!-- ===== TIMER & TOMBOL ===== -->
+  <div class="relative z-10 px-3 sm:px-5 pb-4 pt-2 bg-slate-900/70 backdrop-blur-md border-t-4 border-amber-500/30">
+
+    <!-- Progress soal -->
+    <div class="flex items-center justify-between text-[10px] font-bold uppercase tracking-widest text-amber-300/80 mb-2 px-1">
+      <span id="qProgressText">Soal 1 / 10</span>
+      <span id="timerText">15.0s</span>
+    </div>
+
+    <!-- Timer bar -->
+    <div class="h-3 rounded-full bg-slate-800 overflow-hidden border border-slate-700 mb-4">
+      <div id="timerFill" class="timer-fill h-full w-full rounded-full" style="background: linear-gradient(90deg, #10b981, #34d399);"></div>
+    </div>
+
+    <!-- Tombol raksasa -->
+    <div class="grid grid-cols-2 gap-3 sm:gap-4">
+      <button id="btnBenar" onclick="answer(true)"
+        class="btn-benar btn-press py-5 sm:py-6 rounded-2xl text-white font-pixel text-xs sm:text-sm md:text-base tracking-wider flex items-center justify-center gap-2">
+        <span class="text-xl sm:text-2xl">✓</span> BENAR
+      </button>
+      <button id="btnSalah" onclick="answer(false)"
+        class="btn-salah btn-press py-5 sm:py-6 rounded-2xl text-white font-pixel text-xs sm:text-sm md:text-base tracking-wider flex items-center justify-center gap-2">
+        <span class="text-xl sm:text-2xl">✕</span> SALAH
+      </button>
+    </div>
+
+    <!-- Feedback strip -->
+    <div id="feedback" class="hidden mt-3 rounded-xl px-4 py-3 text-sm font-semibold text-center"></div>
+  </div>
+
+  <!-- Next button overlay -->
+  <div id="nextOverlay" class="hidden absolute inset-0 z-30 flex items-end justify-center pb-24 bg-black/40 backdrop-blur-sm fade-in">
+    <button onclick="nextQuestion()"
+      class="btn-gold btn-press px-10 py-4 rounded-2xl text-slate-900 font-pixel text-xs sm:text-sm">
+      LANJUT ➜
+    </button>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- SCREEN 3: LEVEL UP                                           -->
+<!-- ============================================================ -->
+<div id="screen-levelup" class="fixed inset-0 z-40 hidden items-center justify-center map-bg p-4">
+  <div class="text-center max-w-md w-full level-pop">
+    <div class="text-7xl sm:text-8xl mb-4">🏆</div>
+    <p class="font-pixel text-xs text-amber-300 tracking-widest mb-3">LEVEL COMPLETE</p>
+    <h2 id="levelUpTitle" class="font-pixel text-xl sm:text-2xl text-white mb-3" style="text-shadow: 0 4px 0 #7f1d1d, 0 0 30px rgba(251,191,36,.7);">
+      DUNIA BERIKUTNYA
+    </h2>
+    <div id="levelUpBoss" class="text-6xl sm:text-7xl my-6 boss-enter inline-block">🐲</div>
+    <p class="text-amber-100/80 text-sm mb-6 max-w-sm mx-auto" id="levelUpDesc">
+      Bersiaplah menghadapi penjaga dunia berikutnya!
+    </p>
+    <button onclick="continueAfterLevelUp()"
+      class="btn-gold btn-press px-10 py-4 rounded-2xl text-slate-900 font-pixel text-xs sm:text-sm">
+      MASUK DUNIA ➜
+    </button>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- SCREEN 4: HASIL / GAME OVER                                  -->
+<!-- ============================================================ -->
+<div id="screen-result" class="fixed inset-0 z-30 hidden overflow-y-auto map-bg no-scrollbar">
+  <div class="fixed inset-0 batik-overlay opacity-[0.05] pointer-events-none"></div>
+
+  <div class="relative min-h-full flex items-start justify-center p-4 py-8">
+    <div class="w-full max-w-2xl">
+
+      <!-- Kartu utama hasil -->
+      <div class="bg-slate-900/90 backdrop-blur-md border-4 border-amber-500/70 rounded-3xl overflow-hidden shadow-2xl slide-up">
+
+        <!-- Header -->
+        <div class="relative bg-gradient-to-br from-amber-600 via-red-700 to-red-900 p-6 sm:p-8 text-center overflow-hidden">
+          <div class="absolute inset-0 batik-overlay opacity-10"></div>
+          <div class="absolute -top-20 -right-20 w-72 h-72 rounded-full bg-yellow-400/20 blur-3xl"></div>
+
+          <div class="relative">
+            <p id="resultStatus" class="font-pixel text-[10px] sm:text-xs text-amber-200 tracking-widest mb-3">MISI SELESAI!</p>
+            <div id="resultEmoji" class="text-6xl sm:text-7xl mb-3">🎉</div>
+
+            <!-- Bintang -->
+            <div id="starsRow" class="flex items-center justify-center gap-2 mb-4">
+              <span class="star star-pop text-4xl sm:text-5xl" style="animation-delay:0s;">⭐</span>
+              <span class="star star-pop text-4xl sm:text-5xl" style="animation-delay:.15s;">⭐</span>
+              <span class="star star-pop text-4xl sm:text-5xl" style="animation-delay:.3s;">⭐</span>
+            </div>
+
+            <h2 id="resultTitle" class="font-pixel text-base sm:text-xl text-white mb-2" style="text-shadow: 0 3px 0 #7f1d1d;">
+              KSATRIA SEJARAH
+            </h2>
+            <p id="resultName" class="text-amber-100/90 text-sm font-semibold">Penjelajah</p>
+          </div>
+        </div>
+
+        <!-- Statistik -->
+        <div class="grid grid-cols-3 divide-x divide-slate-700 border-b border-slate-700">
+          <div class="text-center py-5 px-2">
+            <p class="text-2xl sm:text-3xl font-extrabold text-amber-400 tabular-nums" id="statCoin">0</p>
+            <p class="text-[10px] text-slate-400 font-bold uppercase mt-1">🪙 Coin</p>
+          </div>
+          <div class="text-center py-5 px-2">
+            <p class="text-2xl sm:text-3xl font-extrabold text-emerald-400 tabular-nums" id="statBenar">0</p>
+            <p class="text-[10px] text-slate-400 font-bold uppercase mt-1">✓ Benar</p>
+          </div>
+          <div class="text-center py-5 px-2">
+            <p class="text-2xl sm:text-3xl font-extrabold text-red-400 tabular-nums" id="statSalah">0</p>
+            <p class="text-[10px] text-slate-400 font-bold uppercase mt-1">✕ Salah</p>
+          </div>
+        </div>
+
+        <!-- Evaluasi / Review -->
+        <div class="p-5 sm:p-7">
+          <h3 class="font-pixel text-xs sm:text-sm text-amber-300 mb-4 tracking-wider">
+            📋 EVALUASI JAWABAN
+          </h3>
+
+          <div id="reviewList" class="space-y-3 max-h-96 overflow-y-auto scroll-thin pr-2"></div>
+
+          <!-- Tombol Aksi -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-7">
+            <button onclick="restartGame()"
+              class="btn-gold btn-press py-3.5 rounded-xl text-slate-900 font-pixel text-[11px] tracking-wider">
+              🔄 MAIN LAGI
+            </button>
+            <button onclick="openLeaderboard()"
+              class="py-3.5 rounded-xl border-2 border-amber-500/60 text-amber-300 font-bold text-xs hover:bg-amber-500/10 transition">
+              🏆 PAPAN PERINGKAT
+            </button>
+          </div>
+
+          <button onclick="goToLobby()"
+            class="w-full mt-3 py-3 rounded-xl text-slate-400 text-xs font-semibold hover:text-amber-300 transition">
+            ← Kembali ke Materi
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- MODAL: LEADERBOARD                                           -->
+<!-- ============================================================ -->
+<div id="modal-leaderboard" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/70 backdrop-blur-sm fade-in">
+  <div class="w-full max-w-md bg-slate-900 border-4 border-amber-500 rounded-3xl p-6 shadow-2xl level-pop max-h-[85vh] flex flex-col">
+    <div class="text-center mb-5">
+      <div class="text-4xl mb-2">🏆</div>
+      <h2 class="font-pixel text-sm text-amber-400 tracking-wider">PAPAN PERINGKAT</h2>
+      <p class="text-slate-400 text-[10px] mt-1 uppercase tracking-widest">Top 10 Penjelajah</p>
+    </div>
+
+    <div id="leaderboardList" class="flex-1 overflow-y-auto scroll-thin space-y-2 min-h-[200px]"></div>
+
+    <button onclick="closeLeaderboard()"
+      class="btn-gold btn-press w-full mt-5 py-3 rounded-xl text-slate-900 font-bold text-sm">
+      TUTUP
+    </button>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- SCRIPT                                                        -->
+<!-- ============================================================ -->
+<script>
+/* =========================================================
+   AUDIO ENGINE (Web Audio API)
+   ========================================================= */
+let audioCtx = null;
+function initAudio() {
+  if (!audioCtx) {
+    try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {}
+  }
+  if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+}
+
+function playTone(freq, duration, type = 'sine', vol = 0.15, delay = 0) {
+  if (!audioCtx) return;
+  const t = audioCtx.currentTime + delay;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = type;
+  osc.frequency.setValueAtTime(freq, t);
+  gain.gain.setValueAtTime(vol, t);
+  gain.gain.exponentialRampToValueAtTime(0.001, t + duration);
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.start(t);
+  osc.stop(t + duration);
+}
+
+function sfxClick() { playTone(700, 0.08, 'square', 0.1); }
+function sfxCorrect() {
+  playTone(523.25, 0.12, 'sine', 0.18, 0);
+  playTone(659.25, 0.12, 'sine', 0.18, 0.1);
+  playTone(783.99, 0.25, 'sine', 0.18, 0.2);
+}
+function sfxWrong() {
+  playTone(220, 0.15, 'sawtooth', 0.13, 0);
+  playTone(165, 0.25, 'sawtooth', 0.13, 0.13);
+}
+function sfxCoin() {
+  playTone(1318.5, 0.06, 'square', 0.12, 0);
+  playTone(1760, 0.12, 'square', 0.12, 0.06);
+}
+function sfxLevelUp() {
+  playTone(523.25, 0.15, 'square', 0.15, 0);
+  playTone(659.25, 0.15, 'square', 0.15, 0.15);
+  playTone(783.99, 0.15, 'square', 0.15, 0.3);
+  playTone(1046.5, 0.4, 'square', 0.18, 0.45);
+}
+function sfxGameOver() {
+  playTone(392, 0.2, 'sawtooth', 0.15, 0);
+  playTone(329.63, 0.2, 'sawtooth', 0.15, 0.2);
+  playTone(261.63, 0.4, 'sawtooth', 0.15, 0.4);
+}
+
+/* =========================================================
+   BANK SOAL (20 SOAL)
+   ========================================================= */
+const questionBank = {
+  kerajaan: [
+    { q: "Kerajaan Kutai di Kalimantan Timur adalah kerajaan Hindu tertua di Indonesia!", a: true,
+      p: "Kutai (abad ke-4) memang kerajaan Hindu tertua, dibuktikan dengan Prasasti Yupa peninggalan Raja Mulawarman." },
+    { q: "Kerajaan Sriwijaya bercorak Hindu dan berpusat di Jawa Timur.", a: false,
+      p: "Salah! Sriwijaya bercorak BUDDHA dan berpusat di Sumatera Selatan (Palembang). Ia kerajaan maritim terbesar." },
+    { q: "Majapahit mencapai puncak kejayaan pada masa Hayam Wuruk dengan Patih Gajah Mada.", a: true,
+      p: "Benar! Era Hayam Wuruk (1350–1389) dengan Sumpah Palapa Gajah Mada adalah puncak kejayaan Majapahit." },
+    { q: "Candi Borobudur adalah peninggalan Kerajaan Majapahit.", a: false,
+      p: "Salah! Borobudur dibangun oleh dinasti Sailendra dari Kerajaan Mataram Kuno (abad ke-8), bukan Majapahit." },
+    { q: "Prasasti Yupa adalah peninggalan Kerajaan Kutai.", a: true,
+      p: "Benar! Tujuh Prasasti Yupa berisi silsilah Raja Mulawarman, ditemukan di Muara Kaman, Kalimantan Timur." },
+    { q: "Gajah Mada terkenal dengan Sumpah Palapa untuk mempersatukan Nusantara.", a: true,
+      p: "Benar! Sumpah Palapa adalah ikrar Gajah Mada untuk tidak menikmati rempah sebelum mempersatukan Nusantara." },
+    { q: "Kerajaan Tarumanegara terletak di Jawa Barat dengan raja terkenal Purnawarman.", a: true,
+      p: "Benar! Tarumanegara (abad ke-5) di Jawa Barat, dibuktikan Prasasti Ciaruteun peninggalan Purnawarman." }
+  ],
+  perjuangan: [
+    { q: "VOC didirikan oleh Belanda pada tahun 1602 untuk memonopoli perdagangan rempah.", a: true,
+      p: "Benar! VOC (Vereenigde Oostindische Compagnie) berdiri 20 Maret 1602, dibubarkan 1799 karena korupsi." },
+    { q: "Sumpah Pemuda diikrarkan pada tanggal 28 Oktober 1928.", a: true,
+      p: "Benar! Sumpah Pemuda diikrarkan 28 Oktober 1928: satu tanah air, satu bangsa, satu bahasa — Indonesia." },
+    { q: "Budi Utomo didirikan 20 Mei 1908 dan menjadi organisasi modern pertama di Indonesia.", a: true,
+      p: "Benar! Budi Utomo menjadi organisasi modern pertama. Tanggal 20 Mei diperingati sebagai Hari Kebangkitan Nasional." },
+    { q: "Tanam paksa (Cultuurstelsel) diterapkan oleh Belanda pada tahun 1830.", a: true,
+      p: "Benar! Cultuurstelsel diterapkan Gubernur Jenderal Van den Bosch pada 1830. Rakyat sangat menderita." },
+    { q: "Sultan Agung dari Mataram berhasil mengusir VOC dari Batavia.", a: false,
+      p: "Salah! Dua serangan Sultan Agung (1628 & 1629) gagal secara militer, namun membuat VOC rugi besar dan ketakutan." },
+    { q: "Sultan Agung melakukan dua serangan besar ke Batavia pada tahun 1628 dan 1629.", a: true,
+      p: "Benar! Serangan I (1628) dipimpin Tumenggung Bahureksa, Serangan II (1629) oleh Adipati Ukur & Tumenggung Singaranu." },
+    { q: "Sumpah Pemuda menghasilkan tiga ikrar: satu tanah air, satu bangsa, satu bahasa.", a: true,
+      p: "Benar! Tiga ikrar Sumpah Pemuda menjadi fondasi persatuan bangsa Indonesia menuju kemerdekaan." }
+  ],
+  kemerdekaan: [
+    { q: "Proklamasi Kemerdekaan Indonesia dibacakan pada 17 Agustus 1945.", a: true,
+      p: "Benar! Proklamasi dibacakan Jumat, 17 Agustus 1945 oleh Soekarno didampingi Mohammad Hatta." },
+    { q: "Teks Proklamasi ditulis tangan oleh Mohammad Hatta.", a: false,
+      p: "Salah! Teks Proklamasi ditulis tangan oleh SOEKARNO, lalu diketik oleh Sayuti Melik." },
+    { q: "Bendera pusaka Merah Putih dijahit oleh Ibu Fatmawati.", a: true,
+      p: "Benar! Ibu Fatmawati, istri Soekarno, menjahit bendera pusaka Merah Putih yang dikibarkan 17 Agustus 1945." },
+    { q: "Sayuti Melik adalah orang yang mengetik teks Proklamasi.", a: true,
+      p: "Benar! Sayuti Melik mengetik teks Proklamasi setelah naskah tulisan Soekarno disempurnakan." },
+    { q: "Orde Baru dipimpin oleh Presiden Soekarno.", a: false,
+      p: "Salah! Orde Baru dipimpin Presiden SOEHARTO (1966–1998). Masa Soekarno disebut Orde Lama (1945–1966)." },
+    { q: "Proklamasi dibacakan di Jl. Pegangsaan Timur No. 56, Jakarta.", a: true,
+      p: "Benar! Di rumah Soekarno, Jl. Pegangsaan Timur No. 56 Jakarta Pusat, proklamasi dibacakan." }
+  ]
+};
+
+/* =========================================================
+   LEVEL CONFIG
+   ========================================================= */
+const LEVELS = {
+  1: { name: 'Dunia Kerajaan',   icon: '🏛️', boss: '🐲', bossName: 'Penjaga Candi',   color: 'from-amber-600 to-amber-800',  desc: 'Dunia Kerajaan Hindu-Buddha menantimu!' },
+  2: { name: 'Dunia Perjuangan', icon: '⚔️', boss: '👹', bossName: 'Monster Kolonial', color: 'from-red-600 to-red-900',      desc: 'Hadapi monster penjajah yang kejam!' },
+  3: { name: 'Dunia Kemerdekaan',icon: '🇮🇩', boss: '👑', bossName: 'Raja Bayangan',   color: 'from-purple-600 to-purple-900', desc: 'Perjuangan terakhir menuju kemerdekaan!' }
+};
+
+const AVATAR_EMOJI = { pahlawan: '🦸', pelajar: '🧑‍🎓', arkeolog: '🧑‍🔬' };
+
+/* =========================================================
+   GAME STATE
+   ========================================================= */
+const state = {
+  playerName: '',
+  avatar: '',
+  questions: [],
+  currentIndex: 0,
+  lives: 3,
+  coins: 0,
+  score: 0,
+  correctCount: 0,
+  streak: 0,
+  bestStreak: 0,
+  answers: [],
+  timer: null,
+  timeLeft: 15,
+  answered: false,
+  lastLevel: 1
+};
+
+const TIMER_MAX = 15;
+
+/* =========================================================
+   UTIL
+   ========================================================= */
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function pickQuestions() {
+  const k = shuffle(questionBank.kerajaan).slice(0, 4).map(o => ({...o, level: 1}));
+  const p = shuffle(questionBank.perjuangan).slice(0, 3).map(o => ({...o, level: 2}));
+  const m = shuffle(questionBank.kemerdekaan).slice(0, 3).map(o => ({...o, level: 3}));
+  return [...k, ...p, ...m];
+}
+
+function showScreen(id) {
+  ['screen-lobby', 'screen-game', 'screen-levelup', 'screen-result'].forEach(s => {
+    const el = document.getElementById(s);
+    if (s === id) {
+      el.classList.remove('hidden');
+      if (s === 'screen-game') el.classList.add('flex');
+      if (s === 'screen-levelup') el.classList.add('flex');
+    } else {
+      el.classList.add('hidden');
+      el.classList.remove('flex');
+    }
+  });
+  window.scrollTo(0, 0);
+}
+
+/* =========================================================
+   LOBBY: AVATAR SELECT
+   ========================================================= */
+document.querySelectorAll('.avatar-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    initAudio();
+    sfxClick();
+    document.querySelectorAll('.avatar-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    state.avatar = btn.dataset.avatar;
+  });
+});
+
+document.getElementById('inputName').addEventListener('keypress', e => {
+  if (e.key === 'Enter') startGame();
+});
+
+/* =========================================================
+   START GAME
+   ========================================================= */
+function startGame() {
+  initAudio();
+  sfxClick();
+
+  const nameInput = document.getElementById('inputName').value.trim();
+  const errEl = document.getElementById('lobbyError');
+
+  if (!nameInput) {
+    errEl.textContent = '⚠️ Masukkan nama penjelajah dulu!';
+    errEl.classList.remove('hidden');
+    document.getElementById('inputName').focus();
+    return;
+  }
+  if (!state.avatar) {
+    errEl.textContent = '⚠️ Pilih karakter dulu!';
+    errEl.classList.remove('hidden');
+    return;
+  }
+  errEl.classList.add('hidden');
+
+  state.playerName = nameInput;
+  state.questions = pickQuestions();
+  state.currentIndex = 0;
+  state.lives = 3;
+  state.coins = 0;
+  state.score = 0;
+  state.correctCount = 0;
+  state.streak = 0;
+  state.bestStreak = 0;
+  state.answers = [];
+  state.answered = false;
+  state.lastLevel = 1;
+
+  updateHUD();
+  showScreen('screen-game');
+  loadQuestion();
+}
+
+/* =========================================================
+   UPDATE HUD
+   ========================================================= */
+function updateHUD() {
+  document.getElementById('coinDisplay').textContent = state.coins;
+  for (let i = 1; i <= 3; i++) {
+    const h = document.getElementById('heart' + i);
+    if (i <= state.lives) {
+      h.textContent = '❤️';
+      h.classList.remove('heart-lost');
+    } else {
+      h.textContent = '🖤';
+    }
+  }
+  document.getElementById('qProgressText').textContent =
+    `Soal ${state.currentIndex + 1} / ${state.questions.length}`;
+}
+
+function setLevelDisplay(level) {
+  const L = LEVELS[level];
+  document.getElementById('levelIcon').textContent = L.icon;
+  document.getElementById('levelLabel').textContent = 'Level ' + level;
+  document.getElementById('levelName').textContent = L.name;
+  document.getElementById('levelMobile').textContent = 'L' + level;
+  document.getElementById('boss').textContent = L.boss;
+  document.getElementById('bossName').textContent = L.bossName;
+
+  // warna boss name tag
+  const tag = document.getElementById('bossName');
+  tag.className = 'mt-2 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest z-10 ';
+  tag.className += level === 1 ? 'bg-amber-900/80 border border-amber-500/50 text-amber-100'
+                 : level === 2 ? 'bg-red-900/80 border border-red-500/50 text-red-100'
+                 : 'bg-purple-900/80 border border-purple-500/50 text-purple-100';
+}
+
+/* =========================================================
+   LOAD QUESTION
+   ========================================================= */
+function loadQuestion() {
+  const q = state.questions[state.currentIndex];
+  if (!q) return;
+
+  state.answered = false;
+
+  setLevelDisplay(q.level);
+
+  // Reset boss animation
+  const boss = document.getElementById('boss');
+  boss.classList.remove('boss-enter', 'boss-idle');
+  void boss.offsetWidth;
+  boss.classList.add('boss-enter');
+  setTimeout(() => boss.classList.add('boss-idle'), 700);
+
+  // Question text
+  document.getElementById('questionText').textContent = '"' + q.q + '"';
+
+  // Reset bubble
+  const bubble = document.querySelector('#bubbleWrap > div');
+  bubble.classList.remove('bubble-in');
+  void bubble.offsetWidth;
+  bubble.classList.add('bubble-in');
+
+  // Reset buttons
+  const btnB = document.getElementById('btnBenar');
+  const btnS = document.getElementById('btnSalah');
+  btnB.disabled = false;
+  btnS.disabled = false;
+
+  // Feedback hidden
+  document.getElementById('feedback').classList.add('hidden');
+  document.getElementById('nextOverlay').classList.add('hidden');
+
+  // Timer
+  state.timeLeft = TIMER_MAX;
+  updateTimerUI();
+  startTimer();
+
+  updateHUD();
+}
+
+/* =========================================================
+   TIMER
+   ========================================================= */
+function startTimer() {
+  stopTimer();
+  state.timer = setInterval(() => {
+    state.timeLeft -= 0.1;
+    if (state.timeLeft <= 0) {
+      state.timeLeft = 0;
+      updateTimerUI();
+      stopTimer();
+      if (!state.answered) timeOut();
+    } else {
+      updateTimerUI();
+    }
+  }, 100);
+}
+
+function stopTimer() {
+  if (state.timer) { clearInterval(state.timer); state.timer = null; }
+}
+
+function updateTimerUI() {
+  const pct = (state.timeLeft / TIMER_MAX) * 100;
+  const fill = document.getElementById('timerFill');
+  fill.style.width = pct + '%';
+  if (pct > 60) fill.style.background = 'linear-gradient(90deg, #10b981, #34d399)';
+  else if (pct > 30) fill.style.background = 'linear-gradient(90deg, #f59e0b, #fbbf24)';
+  else fill.style.background = 'linear-gradient(90deg, #dc2626, #f87171)';
+  document.getElementById('timerText').textContent = state.timeLeft.toFixed(1) + 's';
+}
+
+function timeOut() {
+  if (state.answered) return;
+  state.answered = true;
+  registerAnswer(null, true);
+}
+
+/* =========================================================
+   ANSWER
+   ========================================================= */
+function answer(choice) {
+  if (state.answered) return;
+  state.answered = true;
+  stopTimer();
+  sfxClick();
+  registerAnswer(choice, false);
+}
+
+function registerAnswer(choice, isTimeout) {
+  const q = state.questions[state.currentIndex];
+  const correct = !isTimeout && choice === q.a;
+
+  // Disable buttons
+  const btnB = document.getElementById('btnBenar');
+  const btnS = document.getElementById('btnSalah');
+  btnB.disabled = true;
+  btnS.disabled = true;
+
+  // Highlight kunci
+  const btnKunci = q.a ? btnB : btnS;
+  btnKunci.style.outline = '4px solid #fbbf24';
+  btnKunci.style.outlineOffset = '3px';
+
+  // Streak logic
+  let coinDelta = 0;
+  let streakBonus = false;
+
+  if (correct) {
+    state.correctCount++;
+    state.streak++;
+    if (state.streak > state.bestStreak) state.bestStreak = state.streak;
+
+    // bonus x2 jika streak kelipatan 3
+    if (state.streak > 0 && state.streak % 3 === 0) {
+      coinDelta = 200; // +100 x2
+      streakBonus = true;
+      showStreakBanner(state.streak);
+    } else {
+      coinDelta = 100;
+    }
+
+    sfxCorrect();
+    setTimeout(() => sfxCoin(), 250);
+    showFloatText('+' + coinDelta, '#fbbf24');
+    flashScreen('rgba(16,185,129,0.25)');
+
+    showFeedback(true, streakBonus, isTimeout);
+  } else {
+    state.streak = 0;
+    state.lives--;
+    coinDelta = -50;
+    sfxWrong();
+    showFloatText('-50', '#ef4444');
+    flashScreen('rgba(239,68,68,0.3)');
+    shakeScreen();
+
+    showFeedback(false, false, isTimeout);
+    updateHUD();
+
+    if (state.lives <= 0) {
+      setTimeout(() => endGame('gameover'), 1400);
+      return;
+    }
+  }
+
+  state.coins = Math.max(0, state.coins + coinDelta);
+  state.score += coinDelta;
+  updateHUD();
+
+  // Simpan jawaban
+  state.answers.push({
+    soal: q.q,
+    pilihan: isTimeout ? null : choice,
+    kunci: q.a,
+    benar: correct,
+    penjelasan: q.p,
+    timeout: isTimeout,
+    level: q.level
+  });
+
+  // Tampilkan next overlay
+  setTimeout(() => {
+    const isLast = state.currentIndex >= state.questions.length - 1;
+    const isLevelEnd = isLast || state.questions[state.currentIndex + 1].level !== q.level;
+
+    if (state.lives <= 0) return;
+
+    if (isLast) {
+      endGame('win');
+    } else if (isLevelEnd) {
+      state.currentIndex++;
+      showLevelUp();
+    } else {
+      document.getElementById('nextOverlay').classList.remove('hidden');
+    }
+  }, 1500);
+}
+
+/* =========================================================
+   FEEDBACK UI
+   ========================================================= */
+function showFeedback(correct, bonus, isTimeout) {
+  const fb = document.getElementById('feedback');
+  fb.classList.remove('hidden');
+
+  if (isTimeout) {
+    fb.className = 'mt-3 rounded-xl px-4 py-3 text-sm font-semibold text-center bg-amber-500/20 text-amber-200 border border-amber-500/40';
+    fb.innerHTML = '⏰ <b>Waktu Habis!</b> Nyawa -1';
+  } else if (correct) {
+    fb.className = 'mt-3 rounded-xl px-4 py-3 text-sm font-semibold text-center bg-emerald-500/20 text-emerald-200 border border-emerald-500/40';
+    fb.innerHTML = bonus
+      ? '🔥 <b>BENAR!</b> Streak x' + state.streak + ' — Bonus +200 Coin!'
+      : '✓ <b>BENAR!</b> +100 Coin';
+  } else {
+    fb.className = 'mt-3 rounded-xl px-4 py-3 text-sm font-semibold text-center bg-red-500/20 text-red-200 border border-red-500/40';
+    fb.innerHTML = '✕ <b>SALAH!</b> Nyawa -1 · Coin -50';
+  }
+}
+
+function showStreakBanner(n) {
+  const el = document.getElementById('streakBanner');
+  document.getElementById('streakNum').textContent = n;
+  el.classList.remove('hidden');
+  const inner = el.firstElementChild;
+  inner.classList.remove('level-pop');
+  void inner.offsetWidth;
+  inner.classList.add('level-pop');
+  setTimeout(() => el.classList.add('hidden'), 2000);
+}
+
+function showFloatText(text, color) {
+  const layer = document.getElementById('floatLayer');
+  const el = document.createElement('div');
+  el.className = 'absolute font-pixel text-lg sm:text-2xl pointer-events-none float-up';
+  el.style.color = color;
+  el.style.left = '50%';
+  el.style.top = '55%';
+  el.style.textShadow = '0 3px 0 rgba(0,0,0,.5)';
+  el.textContent = text;
+  layer.appendChild(el);
+  setTimeout(() => el.remove(), 1100);
+}
+
+function flashScreen(color) {
+  const f = document.getElementById('flashEffect');
+  f.style.background = color;
+  f.style.opacity = '1';
+  setTimeout(() => f.style.opacity = '0', 220);
+}
+
+function shakeScreen() {
+  const el = document.getElementById('screen-game');
+  el.classList.add('shake');
+  setTimeout(() => el.classList.remove('shake'), 500);
+}
+
+/* =========================================================
+   NEXT QUESTION
+   ========================================================= */
+function nextQuestion() {
+  sfxClick();
+  document.getElementById('nextOverlay').classList.add('hidden');
+  state.currentIndex++;
+  loadQuestion();
+}
+
+/* =========================================================
+   LEVEL UP
+   ========================================================= */
+function showLevelUp() {
+  stopTimer();
+  const nextQ = state.questions[state.currentIndex];
+  if (!nextQ) return;
+
+  const L = LEVELS[nextQ.level];
+
+  document.getElementById('levelUpTitle').textContent = 'LEVEL ' + nextQ.level;
+  document.getElementById('levelUpBoss').textContent = L.boss;
+  document.getElementById('levelUpDesc').textContent = L.desc;
+
+  sfxLevelUp();
+  showScreen('screen-levelup');
+}
+
+function continueAfterLevelUp() {
+  sfxClick();
+  showScreen('screen-game');
+  loadQuestion();
+}
+
+/* =========================================================
+   END GAME
+   ========================================================= */
+function endGame(reason) {
+  stopTimer();
+
+  const total = state.questions.length;
+  const answeredCount = state.answers.length;
+  const correct = state.correctCount;
+  const pct = Math.round((correct / total) * 100);
+
+  // Determine bintang & gelar
+  let stars = 1;
+  let title = 'Pemula Sejarah';
+  if (correct >= 9)      { stars = 3; title = 'DEWA SEJARAH'; }
+  else if (correct >= 6) { stars = 2; title = 'KSATRIA SEJARAH'; }
+  else if (correct >= 4) { stars = 1; title = 'PENJELAJAH SEJARAH'; }
+  else                   { stars = 1; title = 'PEMULA SEJARAH'; }
+
+  const isGameOver = reason === 'gameover';
+
+  // Header
+  document.getElementById('resultStatus').textContent = isGameOver ? 'MISI GAGAL...' : 'MISI SELESAI!';
+  document.getElementById('resultEmoji').textContent = isGameOver ? '💀' : (correct >= 9 ? '🏆' : correct >= 6 ? '🎉' : '📚');
+  document.getElementById('resultTitle').textContent = isGameOver ? 'COBA LAGI!' : title;
+  document.getElementById('resultName').textContent = AVATAR_EMOJI[state.avatar] + ' ' + state.playerName;
+
+  // Stars
+  const starEls = document.querySelectorAll('#starsRow .star');
+  starEls.forEach((el, i) => {
+    el.style.animationDelay = (i * 0.15) + 's';
+    if (i < stars) {
+      el.textContent = '⭐';
+      el.style.opacity = '1';
+      el.classList.remove('star-pop');
+      void el.offsetWidth;
+      el.classList.add('star-pop');
+    } else {
+      el.textContent = '☆';
+      el.style.opacity = '0.35';
+    }
+  });
+
+  // Statistik
+  document.getElementById('statCoin').textContent = state.coins;
+  document.getElementById('statBenar').textContent = correct;
+  document.getElementById('statSalah').textContent = answeredCount - correct;
+
+  // Review list
+  renderReview();
+
+  // Efek
+  if (!isGameOver && correct >= 6) {
+    setTimeout(() => fireConfetti(), 300);
+  } else if (isGameOver) {
+    sfxGameOver();
+  }
+
+  // Simpan leaderboard
+  saveLeaderboardEntry({
+    name: state.playerName,
+    avatar: state.avatar,
+    coins: state.coins,
+    score: correct,
+    total,
+    stars,
+    title,
+    date: new Date().toISOString()
+  });
+
+  showScreen('screen-result');
+}
+
+/* =========================================================
+   REVIEW / EVALUASI
+   ========================================================= */
+function renderReview() {
+  const list = document.getElementById('reviewList');
+  list.innerHTML = state.answers.map((item, i) => {
+    const pilihanLabel = item.timeout
+      ? '<span class="text-amber-400">⏰ Tidak dijawab (waktu habis)</span>'
+      : (item.pilihan ? 'BENAR' : 'SALAH');
+    const kunciLabel = item.kunci ? 'BENAR' : 'SALAH';
+
+    const bg = item.benar
+      ? 'bg-emerald-500/10 border-emerald-500/40'
+      : 'bg-red-500/10 border-red-500/40';
+    const badge = item.benar ? 'bg-emerald-500' : 'bg-red-500';
+
+    return `
+      <div class="p-4 rounded-xl border ${bg} slide-up" style="animation-delay:${i * 0.05}s">
+        <div class="flex gap-3">
+          <div class="flex-shrink-0 w-7 h-7 rounded-full ${badge} text-white flex items-center justify-center text-xs font-bold">
+            ${item.benar ? '✓' : '✕'}
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="text-xs font-bold text-slate-200 leading-snug mb-2">${i + 1}. ${item.soal}</p>
+            <div class="flex flex-wrap gap-2 text-[10px] font-bold mb-2">
+              <span class="px-2 py-0.5 rounded-full bg-slate-700 text-slate-200">
+                Jawabanmu: ${pilihanLabel}
+              </span>
+              <span class="px-2 py-0.5 rounded-full bg-amber-500/30 text-amber-200 border border-amber-500/50">
+                Kunci: ${kunciLabel}
+              </span>
+            </div>
+            <p class="text-[11px] text-slate-400 leading-relaxed">💡 ${item.penjelasan}</p>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+/* =========================================================
+   CONFETTI
+   ========================================================= */
+function fireConfetti() {
+  const duration = 2500;
+  const end = Date.now() + duration;
+  const colors = ['#fbbf24', '#ef4444', '#ffffff', '#dc2626'];
+
+  (function frame() {
+    confetti({
+      particleCount: 4,
+      angle: 60,
+      spread: 60,
+      origin: { x: 0, y: 0.65 },
+      colors
+    });
+    confetti({
+      particleCount: 4,
+      angle: 120,
+      spread: 60,
+      origin: { x: 1, y: 0.65 },
+      colors
+    });
+    if (Date.now() < end) requestAnimationFrame(frame);
+  })();
+
+  setTimeout(() => {
+    confetti({
+      particleCount: 120,
+      spread: 90,
+      origin: { y: 0.5 },
+      colors,
+      scalar: 1.2
+    });
+  }, 200);
+}
+
+/* =========================================================
+   RESTART / LOBBY
+   ========================================================= */
+function restartGame() {
+  sfxClick();
+  state.questions = pickQuestions();
+  state.currentIndex = 0;
+  state.lives = 3;
+  state.coins = 0;
+  state.score = 0;
+  state.correctCount = 0;
+  state.streak = 0;
+  state.bestStreak = 0;
+  state.answers = [];
+  state.answered = false;
+
+  updateHUD();
+  showScreen('screen-game');
+  loadQuestion();
+}
+
+function goToLobby() {
+  sfxClick();
+  window.location.href = 'beranda.html';
+}
+
+/* =========================================================
+   LEADERBOARD
+   ========================================================= */
+const LB_KEY = 'historyQuestLeaderboard_v1';
+
+function getLeaderboard() {
+  try {
+    return JSON.parse(localStorage.getItem(LB_KEY) || '[]');
+  } catch { return []; }
+}
+
+function saveLeaderboardEntry(entry) {
+  const list = getLeaderboard();
+  list.push(entry);
+  list.sort((a, b) => b.coins - a.coins || b.score - a.score);
+  const top = list.slice(0, 10);
+  try { localStorage.setItem(LB_KEY, JSON.stringify(top)); } catch {}
+}
+
+function renderLeaderboard() {
+  const list = getLeaderboard();
+  const el = document.getElementById('leaderboardList');
+
+  if (list.length === 0) {
+    el.innerHTML = `
+      <div class="text-center py-10 text-slate-500">
+        <p class="text-4xl mb-3">📭</p>
+        <p class="text-xs font-semibold">Belum ada rekor. Jadilah yang pertama!</p>
+      </div>`;
+    return;
+  }
+
+  el.innerHTML = list.map((item, i) => {
+    const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '#' + (i + 1);
+    const isTop = i < 3;
+    return `
+      <div class="flex items-center gap-3 p-3 rounded-xl border ${isTop ? 'bg-amber-500/10 border-amber-500/40' : 'bg-slate-800/60 border-slate-700'}">
+        <div class="w-8 text-center font-pixel text-xs ${isTop ? 'text-amber-400' : 'text-slate-500'}">${medal}</div>
+        <div class="text-2xl">${AVATAR_EMOJI[item.avatar] || '🦸'}</div>
+        <div class="flex-1 min-w-0">
+          <p class="text-white text-sm font-bold truncate">${escapeHtml(item.name)}</p>
+          <p class="text-[10px] text-slate-400 font-semibold">${item.title || ''} · ${item.score}/${item.total || 10} benar</p>
+        </div>
+        <div class="text-right">
+          <p class="text-amber-400 font-extrabold text-sm tabular-nums">🪙 ${item.coins}</p>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function openLeaderboard() {
+  initAudio();
+  sfxClick();
+  renderLeaderboard();
+  const m = document.getElementById('modal-leaderboard');
+  m.classList.remove('hidden');
+  m.classList.add('flex');
+}
+
+function closeLeaderboard() {
+  sfxClick();
+  const m = document.getElementById('modal-leaderboard');
+  m.classList.add('hidden');
+  m.classList.remove('flex');
+}
+
+/* =========================================================
+   INIT
+   ========================================================= */
+document.addEventListener('DOMContentLoaded', () => {
+  showScreen('screen-lobby');
+  document.getElementById('inputName').focus();
+
+  // Resume audio saat interaksi pertama
+  ['click', 'touchstart', 'keydown'].forEach(ev => {
+    document.addEventListener(ev, initAudio, { once: true });
+  });
+});
+</script>
+
+</body>
+</html>
